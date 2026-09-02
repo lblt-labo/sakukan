@@ -723,10 +723,12 @@
     storage.set(key, JSON.stringify(obj));
   }
 
-  /* ========================================================
-     0-b. PINコードによるロック画面
+/* ========================================================
+     0-b. PINコードによるロック画面（保存機能付き）
   ======================================================== */
-  var APP_PIN = "1234";
+  // localStorageに保存されたPINがあればそれを使い、なければ初期値"1234"を使用
+  var APP_PIN = localStorage.getItem("sakukan_pin") || "1234";
+  
   var lockScreen = document.getElementById("lockScreen");
   var appRoot = document.getElementById("appRoot");
   var lockPinInput = document.getElementById("lockPinInput");
@@ -748,11 +750,23 @@
       lockPinInput.focus();
     }
   }
+  
   btnUnlock.addEventListener("click", tryUnlock);
   lockPinInput.addEventListener("keydown", function(e){
     if(e.key === "Enter"){ e.preventDefault(); tryUnlock(); }
   });
   setTimeout(function(){ lockPinInput.focus(); }, 50);
+
+  // ★新しいPINコードに変更・保存するための関数（必要に応じて設定画面のボタン等から呼び出し）
+  function changeAppPin(newPin) {
+    if(!newPin || newPin.length !== 4) {
+      alert("4桁の数字を入力してください。");
+      return;
+    }
+    localStorage.setItem("sakukan_pin", newPin);
+    APP_PIN = newPin;
+    alert("PINコードを変更しました！次回から新しいPINでロック解除できます。");
+  }
 
   /* ========================================================
      1. データ定義：フェーズ／タスク
