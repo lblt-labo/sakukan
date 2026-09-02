@@ -1402,6 +1402,22 @@
   switchView("checklist");
 
 })();
+  function updatePin() {
+  var newPin = prompt("新しい4桁のPINコードを入力してください:", "1234");
+  if (newPin === null) return; // キャンセルされた場合
+  
+  newPin = newPin.trim();
+  if (newPin.length !== 4 || isNaN(newPin)) {
+    alert("4桁の数字を入力してください。");
+    return;
+  }
+  
+  localStorage.setItem("sakukan_pin", newPin);
+  if (typeof APP_PIN !== "undefined") {
+    APP_PIN = newPin;
+  }
+  alert("PINコードを変更しました！次回から「" + newPin + "」で解除できます。");
+}
 </script>
     <!-- ▼ ここに置く！ ▼ -->
     <footer style="text-align: center; font-size: 0.75rem; color: #888; margin-top: 3rem; padding: 1rem 0.5rem 10rem; line-height: 1.5;">
