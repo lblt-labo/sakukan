@@ -462,15 +462,14 @@
 <div id="appRoot">
 
 <header class="app-header">
-<div class="brand-row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-  <!-- タイトル＋サブタイトル群 -->
-  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1;">
-    <span class="brand-name" style="font-weight: 800; font-size: 1.2rem; white-space: nowrap;">サクカン</span>
-    <span class="brand-sub" style="font-size: 0.72rem; opacity: 0.85; white-space: nowrap;">すべての幹事さんをサポートするアプリ</span>
-  </div>
+<div class="brand-row" style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; flex-wrap: nowrap !important; width: 100% !important; gap: 8px !important;">
   
-  <!-- 右端に配置するPIN変更ボタン -->
-  <button type="button" onclick="updatePin()" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; margin-left: auto;">⚙️ PIN変更</button>
+  <span class="brand-name" style="display: inline-block !important; font-weight: 800 !important; font-size: 1.1rem !important; white-space: nowrap !important; word-break: keep-all !important; line-height: 1 !important;">サクカン</span>
+  
+  <span class="brand-sub" style="display: inline-block !important; font-size: 0.7rem !important; opacity: 0.85 !important; white-space: nowrap !important; word-break: keep-all !important;">すべての幹事さんをサポートするアプリ</span>
+  
+  <button type="button" onclick="updatePin()" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; cursor: pointer; white-space: nowrap !important; margin-left: auto !important;">⚙️ PIN変更</button>
+  
 </div>
   <div class="header-progress-wrap" id="headerProgressWrap">
     <div class="header-progress-label">
