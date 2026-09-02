@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>サクカン - 若手幹事レスキュー</title>
+<meta name="description" content="サクサク幹事サポート。飲み会のチェックリスト・参加者管理・割り勘計算・気配り文面・実績メモをまとめてサポートする幹事さんの相棒アプリです。">
+<meta property="og:title" content="サクカン - 若手幹事レスキュー">
+<meta property="og:description" content="飲み会のチェックリスト・参加者管理・割り勘計算・気配り文面・実績メモをまとめてサポート。もう幹事は怖くない。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#17223B">
+<style>
+  :root{
+    --navy-900:#101A30;
+    --navy-800:#17223B;
+    --navy-700:#243257;
+    --paper:#FBF8F1;
+    --paper-dim:#F1ECDF;
+    --card:#FFFFFF;
+    --ink:#22252B;
+    --ink-soft:#5B5F6B;
+    --line:#E4DFD0;
+    --accent:#FF9900;
+    --accent-ink:#7A4400;
+    --accent-soft:#FFE8C2;
+    --blue:#0041FF;
+    --blue-soft:#DCE6FF;
+    --green:#2E8F63;
+    --green-soft:#DFF3E8;
+    --red:#E0451A;
+    --red-soft:#FCE3D8;
+    --radius-s:10px;
+    --radius-m:16px;
+    --radius-l:24px;
+    --shadow-card:0 2px 10px rgba(23,34,59,0.08);
+    --shadow-pop:0 10px 30px rgba(23,34,59,0.20);
+    --font-ui:"BIZ UDPGothic","Yu Gothic Medium","Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;
+    --tap-min:44px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-ui);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  button{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--blue); outline-offset:2px;}
+
+  /* ---------- lock screen ---------- */
+  #lockScreen{
+    position:fixed; inset:0; z-index:200;
+    background:linear-gradient(180deg,var(--navy-900),var(--navy-800));
+    color:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  #lockScreen.hidden{display:none;}
+  .lock-card{
+    width:100%; max-width:340px; text-align:center;
+  }
+  .lock-icon{font-size:40px; margin-bottom:10px;}
+  .lock-title{
+    font-family:var(--font-ui); font-weight:800; font-size:24px; letter-spacing:0.04em; margin-bottom:6px;
+  }
+  .lock-desc{font-size:13px; color:#C9D2E8; margin-bottom:24px; line-height:1.6;}
+  #lockPinInput{
+    width:100%; min-height:56px; text-align:center;
+    font-size:26px; letter-spacing:0.5em; font-weight:800;
+    border-radius:var(--radius-m); border:2px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08); color:var(--paper);
+    padding:0 10px 0 18px; margin-bottom:14px;
+  }
+  #lockPinInput::placeholder{color:rgba(255,255,255,0.35); letter-spacing:0.2em; font-size:15px; font-weight:600;}
+  .lock-error{
+    font-size:12.5px; color:#FFC9B3; min-height:18px; margin-bottom:14px; font-weight:700;
+  }
+  .lock-error.shake{animation:lockshake 0.35s ease;}
+  @keyframes lockshake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+  #btnUnlock{
+    width:100%; min-height:52px; border:none; border-radius:var(--radius-m);
+    background:var(--accent); color:var(--navy-900); font-size:15px; font-weight:800; cursor:pointer;
+  }
+
+  /* ---------- app root ---------- */
+  #appRoot{display:none; padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+  #appRoot.visible{display:block;}
+
+  /* ---------- header ---------- */
+  header.app-header{
+    background:linear-gradient(180deg,var(--navy-900),var(--navy-800));
+    color:var(--paper);
+    padding:22px 20px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.app-header::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-60px;
+    width:180px; height:180px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(255,153,0,0.35), rgba(255,153,0,0) 70%);
+  }
+  .brand-row{
+    display:flex; align-items:baseline; gap:10px; position:relative; z-index:1;
+  }
+  .brand-name{
+    font-family:var(--font-ui);
+    font-size:26px;
+    letter-spacing:0.02em;
+    font-weight:800;
+  }
+  .brand-sub{
+    font-size:12px;
+    color:#C9D2E8;
+    letter-spacing:0.02em;
+  }
+  .header-progress-wrap{
+    margin-top:16px;
+    position:relative; z-index:1;
+  }
+  .header-progress-label{
+    display:flex; justify-content:space-between;
+    font-size:12px; color:#C9D2E8; margin-bottom:6px;
+  }
+  .header-progress-label strong{color:var(--paper); font-size:13px;}
+  .progress-track{
+    height:10px; background:rgba(255,255,255,0.14);
+    border-radius:999px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:linear-gradient(90deg,var(--accent),#FFC266);
+    border-radius:999px;
+    transition:width 0.4s ease;
+    min-width:4px;
+  }
+
+  main{padding:16px 16px 24px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadein 0.25s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  h2.section-title{
+    font-size:17px; margin:4px 0 12px; color:var(--navy-800); font-weight:700;
+  }
+  p.section-desc{
+    font-size:13px; color:var(--ink-soft); margin:-6px 0 16px; line-height:1.6;
+  }
+
+  /* ---------- phase pill tabs ---------- */
+  .phase-tabs{
+    display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:16px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .phase-tab{
+    flex:0 0 auto;
+    min-height:var(--tap-min);
+    padding:0 16px;
+    border-radius:999px;
+    border:2px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    font-size:13px;
+    font-weight:700;
+    display:flex; align-items:center; gap:6px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .phase-tab .phase-tab-icon{font-size:15px;}
+  .phase-tab[aria-selected="true"]{
+    background:var(--navy-800); border-color:var(--navy-800); color:var(--paper);
+  }
+  .phase-tab .phase-count{
+    font-size:11px; background:rgba(0,0,0,0.08); border-radius:999px; padding:1px 7px;
+  }
+  .phase-tab[aria-selected="true"] .phase-count{background:rgba(255,255,255,0.2);}
+
+  .phase-progress-row{
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .phase-progress-row .progress-track{flex:1; background:var(--paper-dim);}
+  .phase-progress-row .progress-fill{background:linear-gradient(90deg,var(--blue),#5C82FF);}
+  .phase-progress-row .phase-progress-num{font-size:12px; font-weight:700; color:var(--navy-700); min-width:34px; text-align:right;}
+
+  /* ---------- task list ---------- */
+  .task-list{display:flex; flex-direction:column; gap:10px;}
+  .task-item{
+    display:flex; align-items:flex-start; gap:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:12px 14px;
+    box-shadow:var(--shadow-card);
+    cursor:pointer;
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .task-item.done{
+    background:var(--green-soft);
+    border-color:#BFE4CE;
+  }
+  .task-check{
+    flex:0 0 auto;
+    width:26px; height:26px;
+    border-radius:50%;
+    border:2px solid var(--ink-soft);
+    background:var(--card);
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+  }
+  .task-item.done .task-check{
+    background:var(--green);
+    border-color:var(--green);
+  }
+  .task-check svg{width:15px; height:15px; opacity:0; transition:opacity 0.15s ease;}
+  .task-item.done .task-check svg{opacity:1;}
+  .task-body{flex:1;}
+  .task-text{font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.5;}
+  .task-item.done .task-text{
+    text-decoration:line-through;
+    text-decoration-color:var(--green);
+    color:#4B7B62;
+  }
+  .task-sub{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .task-done-badge{
+    flex:0 0 auto; font-size:11px; font-weight:700; color:var(--green);
+    background:#FFFFFF; border:1px solid #BFE4CE; border-radius:999px;
+    padding:2px 8px; margin-top:2px;
+  }
+
+  /* ---------- generic card / button ---------- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius-l);
+    padding:18px; box-shadow:var(--shadow-card); margin-bottom:16px;
+  }
+  .field-label{
+    font-size:12.5px; font-weight:700; color:var(--navy-700); margin-bottom:6px; display:block;
+  }
+  .field-block{margin-bottom:16px;}
+  input[type="number"], input[type="text"], input[type="date"], textarea{
+    width:100%; min-height:var(--tap-min);
+    border:2px solid var(--line); border-radius:var(--radius-s);
+    padding:10px 12px; font-size:15px; font-family:inherit; color:var(--ink);
+    background:var(--paper);
+  }
+  input:focus, textarea:focus{border-color:var(--blue); outline:none;}
+  textarea{min-height:70px; resize:vertical;}
+  .input-yen-wrap{position:relative;}
+  .input-yen-wrap input{padding-right:34px;}
+  .input-yen-wrap::after{
+    content:"円"; position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    font-size:13px; color:var(--ink-soft); pointer-events:none;
+  }
+
+  .segmented{
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .segmented button{
+    min-height:var(--tap-min);
+    flex:1 1 auto;
+    padding:0 12px;
+    border-radius:var(--radius-s);
+    border:2px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    font-size:13px; font-weight:700;
+    cursor:pointer;
+  }
+  .segmented button[aria-pressed="true"]{
+    border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink);
+  }
+
+  .btn-primary{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; min-height:50px;
+    background:var(--navy-800); color:var(--paper);
+    border:none; border-radius:var(--radius-m);
+    font-size:15px; font-weight:700; cursor:pointer;
+    box-shadow:0 6px 16px rgba(23,34,59,0.25);
+  }
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-secondary{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    min-height:var(--tap-min);
+    background:var(--card); color:var(--navy-800);
+    border:2px solid var(--line); border-radius:var(--radius-s);
+    font-size:13.5px; font-weight:700; cursor:pointer; padding:0 14px;
+  }
+  .btn-danger-outline{
+    min-height:38px; background:var(--card); color:var(--red);
+    border:1.5px solid var(--red-soft); border-radius:var(--radius-s);
+    font-size:12.5px; font-weight:700; cursor:pointer; padding:0 12px;
+  }
+
+  /* ---------- warizan result ---------- */
+  .result-hero{
+    background:linear-gradient(135deg,var(--navy-800),var(--navy-700));
+    color:var(--paper); border-radius:var(--radius-l);
+    padding:22px; text-align:center; margin-bottom:14px;
+    box-shadow:var(--shadow-pop);
+  }
+  .result-hero .result-label{font-size:12.5px; color:#C9D2E8; margin-bottom:6px;}
+  .result-hero .result-value{font-size:38px; font-weight:800; letter-spacing:0.02em;}
+  .result-hero .result-value span{font-size:16px; font-weight:600; margin-left:2px;}
+  .result-sub-row{
+    display:flex; gap:10px; margin-bottom:16px;
+  }
+  .result-sub-card{
+    flex:1; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:12px; text-align:center;
+  }
+  .result-sub-card .rs-label{font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;}
+  .result-sub-card .rs-value{font-size:16px; font-weight:800; color:var(--navy-800);}
+  .result-sub-card.diff-plus .rs-value{color:var(--blue);}
+  .result-sub-card.diff-plus .rs-label::before{content:"▲ ";}
+  .result-sub-card.diff-zero .rs-value{color:var(--green);}
+  .result-sub-card.diff-zero .rs-label::before{content:"● ";}
+  .calc-note{font-size:12px; color:var(--ink-soft); line-height:1.6; margin-top:2px;}
+
+  /* ---------- templates ---------- */
+  .toggle-group{margin-bottom:14px;}
+  .toggle-group-label{font-size:12px; font-weight:700; color:var(--navy-700); margin-bottom:8px; display:block;}
+  .manner-tip{
+    display:flex; gap:8px; align-items:flex-start;
+    background:var(--blue-soft); border:1px solid #C4D3FF; border-radius:var(--radius-s);
+    padding:10px 12px; font-size:12.5px; color:#1A2F7A; line-height:1.6; margin-bottom:16px;
+  }
+  .manner-tip .mt-icon{flex:0 0 auto; font-size:15px;}
+  .template-preview{
+    background:var(--paper-dim); border:1.5px dashed #C9C1A5; border-radius:var(--radius-m);
+    padding:16px; font-size:14px; line-height:1.85; white-space:pre-wrap; color:var(--ink);
+    margin-bottom:14px; min-height:120px;
+  }
+
+  /* ---------- record / participant cards ---------- */
+  .record-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:14px 16px; box-shadow:var(--shadow-card); margin-bottom:12px;
+  }
+  .record-card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .record-event{font-size:15px; font-weight:800; color:var(--navy-800);}
+  .record-date{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .record-shop{font-size:13px; color:var(--ink); margin-top:8px; font-weight:600;}
+  .record-shop::before{content:"🏮 ";}
+  .record-memo{font-size:13px; color:var(--ink-soft); margin-top:6px; line-height:1.6; white-space:pre-wrap;}
+  .record-rating{display:flex; gap:2px; margin-top:8px;}
+  .record-rating .star{font-size:15px;}
+  .record-actions{display:flex; gap:8px; margin-top:12px;}
+  .empty-state{
+    text-align:center; padding:36px 16px; color:var(--ink-soft); font-size:13.5px; line-height:1.7;
+  }
+  .empty-state .es-icon{font-size:34px; display:block; margin-bottom:10px;}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11.5px; font-weight:800; border-radius:999px; padding:3px 10px;
+    border:1px solid transparent;
+  }
+  .badge-attend{background:var(--green-soft); color:var(--green); border-color:#BFE4CE;}
+  .badge-absent{background:var(--red-soft); color:var(--red); border-color:#F5C7B2;}
+  .badge-pending{background:var(--accent-soft); color:var(--accent-ink); border-color:#FFD79A;}
+  .allergy-chip{
+    display:inline-flex; align-items:center; gap:4px; margin-top:8px;
+    font-size:11.5px; font-weight:800; color:#7A1E00; background:#FFEDE3;
+    border:1px solid #F7C6AC; border-radius:999px; padding:3px 10px;
+  }
+  .allergy-detail{font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.6;}
+
+  /* ---------- modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(16,26,48,0.55);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-sheet{
+    background:var(--paper); width:100%; max-width:480px;
+    border-radius:22px 22px 0 0; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+    max-height:88vh; overflow-y:auto;
+    animation:sheetup 0.22s ease;
+  }
+  @keyframes sheetup{from{transform:translateY(16px); opacity:0.6;} to{transform:translateY(0); opacity:1;}}
+  .modal-title{font-size:16px; font-weight:800; color:var(--navy-800); margin-bottom:14px;}
+  .star-picker{display:flex; gap:8px;}
+  .star-picker button{
+    min-width:var(--tap-min); min-height:var(--tap-min);
+    border:none; background:transparent; font-size:24px; cursor:pointer;
+  }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:calc(90px + env(safe-area-inset-bottom));
+    transform:translate(-50%, 16px);
+    background:var(--navy-900); color:var(--paper);
+    padding:12px 20px; border-radius:999px; font-size:13.5px; font-weight:700;
+    box-shadow:var(--shadow-pop);
+    display:flex; align-items:center; gap:8px;
+    opacity:0; pointer-events:none; transition:opacity 0.2s ease, transform 0.2s ease;
+    z-index:80;
+  }
+  .toast.show{opacity:1; transform:translate(-50%, 0); pointer-events:auto;}
+
+  /* ---------- bottom nav ---------- */
+  nav.bottom-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    background:var(--card);
+    border-top:1px solid var(--line);
+    display:flex;
+    padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -4px 14px rgba(23,34,59,0.08);
+  }
+  .nav-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; min-height:64px; background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:10.5px; font-weight:700;
+    padding:0 2px;
+  }
+  .nav-btn .nav-icon{font-size:19px;}
+  .nav-btn[aria-current="true"]{color:var(--accent-ink);}
+  .nav-btn[aria-current="true"] .nav-icon-wrap{
+    background:var(--accent-soft); border-radius:12px; padding:2px 10px;
+  }
+
+  .fab-add{
+    position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom));
+    width:56px; height:56px; border-radius:50%;
+    background:var(--accent); color:var(--navy-900); border:none;
+    font-size:26px; font-weight:800; box-shadow:var(--shadow-pop); cursor:pointer; z-index:30;
+    display:none; align-items:center; justify-content:center;
+  }
+  .fab-add.show{display:flex;}
+
+  @media (min-width:600px){
+    main{max-width:560px; margin:0 auto;}
+    header.app-header{max-width:560px; margin:0 auto;}
+  }
+</style>
+</head>
+<body>
+
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon" aria-hidden="true">🔒</div>
+    <div class="lock-title">サクカン ロック中</div>
+    <div class="lock-desc">参加者情報など個人情報を扱うため、<br>PINコードを入力してください。</div>
+    <label for="lockPinInput" class="field-label" style="color:#C9D2E8; text-align:left;">PINコード（4桁）</label>
+    <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" id="lockPinInput" placeholder="••••" autocomplete="off">
+    <div class="lock-error" id="lockError" role="alert"></div>
+    <button type="button" id="btnUnlock">解除する</button>
+  </div>
+</div>
+
+<div id="appRoot">
+
+<header class="app-header">
+  <div class="brand-row">
+    <span class="brand-name">サクカン</span>
+    <span class="brand-sub">すべての幹事さんをサポートするアプリ</span>
+  </div>
+  <div class="header-progress-wrap" id="headerProgressWrap">
+    <div class="header-progress-label">
+      <span>全体の進み具合</span>
+      <strong id="headerProgressText">0%</strong>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="headerProgressFill" style="width:0%"></div></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ 1. チェックリスト ============ -->
+  <section class="view active" id="view-checklist" aria-labelledby="checklist-title">
+    <h2 class="section-title" id="checklist-title">タイムライン・チェックリスト</h2>
+    <p class="section-desc">フェーズを選んで、やることを1つずつタップ。押した項目はチェック済みになります。</p>
+
+    <div class="phase-tabs" role="tablist" id="phaseTabs"></div>
+
+    <div class="phase-progress-row">
+      <div class="progress-track"><div class="progress-fill" id="phaseProgressFill" style="width:0%"></div></div>
+      <div class="phase-progress-num" id="phaseProgressNum">0/0</div>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+  </section>
+
+  <!-- ============ 2. 参加者管理 ============ -->
+  <section class="view" id="view-participants" aria-labelledby="participants-title">
+    <h2 class="section-title" id="participants-title">参加者管理</h2>
+    <p class="section-desc">名前・出欠・アレルギーの有無をまとめて管理できます。右下の＋から追加してください。</p>
+    <div id="participantList"></div>
+  </section>
+
+  <!-- ============ 3. 割り勘電卓 ============ -->
+  <section class="view" id="view-warizan" aria-labelledby="warizan-title">
+    <h2 class="section-title" id="warizan-title">引き算割り勘電卓</h2>
+    <p class="section-desc">上司の「多め出し」や値引き分をあらかじめ差し引いてから、一般参加者で均等に割ります。</p>
+
+    <div class="card">
+      <div class="field-block">
+        <label class="field-label" for="inpTotal">会計総額</label>
+        <div class="input-yen-wrap"><input type="number" inputmode="numeric" id="inpTotal" placeholder="例）48000" min="0"></div>
+      </div>
+      <div class="field-block">
+        <label class="field-label" for="inpDiscount">上司・特定者の多め出し／値引き額</label>
+        <div class="input-yen-wrap"><input type="number" inputmode="numeric" id="inpDiscount" placeholder="例）20000" min="0"></div>
+      </div>
+      <div class="field-block">
+        <label class="field-label" for="inpPeople">一般参加者の人数</label>
+        <input type="number" inputmode="numeric" id="inpPeople" placeholder="例）6" min="1">
+      </div>
+      <div class="field-block" style="margin-bottom:0;">
+        <label class="field-label">端数調整</label>
+        <div class="segmented" id="roundSegment" role="group">
+          <button type="button" data-round="100" aria-pressed="true">100円↑</button>
+          <button type="button" data-round="500" aria-pressed="false">500円↑</button>
+          <button type="button" data-round="1000" aria-pressed="false">1,000円↑</button>
+          <button type="button" data-round="0" aria-pressed="false">切り捨て</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-hero">
+      <div class="result-label">一般1人あたりの支払額</div>
+      <div class="result-value" id="perPersonValue">¥0<span>／人</span></div>
+    </div>
+    <div class="result-sub-row">
+      <div class="result-sub-card" id="targetCard">
+        <div class="rs-label">実際の割る対象額</div>
+        <div class="rs-value" id="targetValue">¥0</div>
+      </div>
+      <div class="result-sub-card diff-zero" id="diffCard">
+        <div class="rs-label">集金総額との差額</div>
+        <div class="rs-value" id="diffValue">¥0</div>
+      </div>
+    </div>
+    <p class="calc-note" id="calcNote">総額と人数を入力すると、自動で計算されます。</p>
+  </section>
+
+  <!-- ============ 4. 文面テンプレ ============ -->
+  <section class="view" id="view-template" aria-labelledby="template-title">
+    <h2 class="section-title" id="template-title">気配り文面テンプレート</h2>
+    <p class="section-desc">相手・タイミング・支払い方法を選ぶだけで、失礼のない文面が作れます。</p>
+
+    <div class="toggle-group">
+      <span class="toggle-group-label">送る相手</span>
+      <div class="segmented" id="tplRecipient" role="group">
+        <button type="button" data-val="boss" aria-pressed="true">上司向け</button>
+        <button type="button" data-val="peer" aria-pressed="false">同僚・後輩向け</button>
+      </div>
+    </div>
+    <div class="toggle-group">
+      <span class="toggle-group-label">送るタイミング</span>
+      <div class="segmented" id="tplTiming" role="group">
+        <button type="button" data-val="samenight" aria-pressed="true">当日夜</button>
+        <button type="button" data-val="nextmorning" aria-pressed="false">翌朝</button>
+        <button type="button" data-val="later" aria-pressed="false">後日</button>
+      </div>
+    </div>
+    <div class="toggle-group">
+      <span class="toggle-group-label">支払い方法</span>
+      <div class="segmented" id="tplPayment" role="group">
+        <button type="button" data-val="cash" aria-pressed="true">現金</button>
+        <button type="button" data-val="digital" aria-pressed="false">PayPay等の電子マネー</button>
+      </div>
+    </div>
+
+    <div class="manner-tip" id="mannerTip">
+      <span class="mt-icon">💡</span>
+      <span id="mannerTipText"></span>
+    </div>
+
+    <div class="template-preview" id="templatePreview"></div>
+    <button class="btn-primary" id="btnCopyTemplate">
+      <span aria-hidden="true">📋</span> この文面をコピーする
+    </button>
+  </section>
+
+  <!-- ============ 5. 幹事実績カード ============ -->
+  <section class="view" id="view-records" aria-labelledby="records-title">
+    <h2 class="section-title" id="records-title">幹事実績カード</h2>
+    <p class="section-desc">開催した飲み会の記録を残せます。お店選びの参考やお礼のネタ帳に。</p>
+    <div id="recordList"></div>
+  </section>
+
+</main>
+
+<button class="fab-add" id="fabAdd" aria-label="追加する">＋</button>
+
+<nav class="bottom-nav" role="tablist" aria-label="メイン機能">
+  <button class="nav-btn" data-target="checklist" aria-current="true">
+    <span class="nav-icon-wrap"><span class="nav-icon">📋</span></span>
+    <span>チェック</span>
+  </button>
+  <button class="nav-btn" data-target="participants" aria-current="false">
+    <span class="nav-icon-wrap"><span class="nav-icon">👥</span></span>
+    <span>参加者</span>
+  </button>
+  <button class="nav-btn" data-target="warizan" aria-current="false">
+    <span class="nav-icon-wrap"><span class="nav-icon">🧮</span></span>
+    <span>割り勘</span>
+  </button>
+  <button class="nav-btn" data-target="template" aria-current="false">
+    <span class="nav-icon-wrap"><span class="nav-icon">✉️</span></span>
+    <span>テンプレ</span>
+  </button>
+  <button class="nav-btn" data-target="records" aria-current="false">
+    <span class="nav-icon-wrap"><span class="nav-icon">🏅</span></span>
+    <span>実績</span>
+  </button>
+</nav>
+
+<div class="modal-backdrop" id="participantModalBackdrop">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="participantModalTitle">
+    <div class="modal-title" id="participantModalTitle">参加者を追加</div>
+    <div class="field-block">
+      <label class="field-label" for="partName">名前</label>
+      <input type="text" id="partName" placeholder="例）山田 太郎">
+    </div>
+    <div class="field-block">
+      <label class="field-label">出欠</label>
+      <div class="segmented" id="partAttendance" role="group">
+        <button type="button" data-val="attend" aria-pressed="true">✓ 出席</button>
+        <button type="button" data-val="absent" aria-pressed="false">✕ 欠席</button>
+        <button type="button" data-val="pending" aria-pressed="false">？ 保留</button>
+      </div>
+    </div>
+    <div class="field-block">
+      <label class="field-label">アレルギーの有無</label>
+      <div class="segmented" id="partAllergyFlag" role="group">
+        <button type="button" data-val="none" aria-pressed="true">なし</button>
+        <button type="button" data-val="yes" aria-pressed="false">⚠️ あり</button>
+      </div>
+    </div>
+    <div class="field-block">
+      <label class="field-label" for="partAllergyDetail">アレルギー内容（該当する場合）</label>
+      <textarea id="partAllergyDetail" placeholder="例）えび・かに、そば"></textarea>
+    </div>
+    <button class="btn-primary" id="btnSaveParticipant">保存する</button>
+    <button class="btn-secondary" id="btnCancelParticipant" style="width:100%; margin-top:10px; justify-content:center;">キャンセル</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="recordModalBackdrop">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle">
+    <div class="modal-title" id="recordModalTitle">実績カードを追加</div>
+    <div class="field-block">
+      <label class="field-label" for="recDate">日付</label>
+      <input type="date" id="recDate">
+    </div>
+    <div class="field-block">
+      <label class="field-label" for="recEvent">イベント名</label>
+      <input type="text" id="recEvent" placeholder="例）第2四半期 部内歓送迎会">
+    </div>
+    <div class="field-block">
+      <label class="field-label" for="recShop">店舗名</label>
+      <input type="text" id="recShop" placeholder="例）個室居酒屋 花むすび 新宿店">
+    </div>
+    <div class="field-block">
+      <label class="field-label">幹事としての満足度</label>
+      <div class="star-picker" id="recStars">
+        <button type="button" data-star="1" aria-label="星1つ">☆</button>
+        <button type="button" data-star="2" aria-label="星2つ">☆</button>
+        <button type="button" data-star="3" aria-label="星3つ">☆</button>
+        <button type="button" data-star="4" aria-label="星4つ">☆</button>
+        <button type="button" data-star="5" aria-label="星5つ">☆</button>
+      </div>
+    </div>
+    <div class="field-block">
+      <label class="field-label" for="recMemo">メモ（お店の良かった点・反省点など）</label>
+      <textarea id="recMemo" placeholder="例）個室が広く上司の受けが良かった。会計は事前カード払いにすると当日がラクだった。"></textarea>
+    </div>
+    <button class="btn-primary" id="btnSaveRecord">保存する</button>
+    <button class="btn-secondary" id="btnCancelRecord" style="width:100%; margin-top:10px; justify-content:center;">キャンセル</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span aria-hidden="true">✅</span><span id="toastText">コピーしました！</span>
+</div>
+
+</div><!-- /#appRoot -->
+
+<script>
+(function(){
+  "use strict";
+
+  /* ========================================================
+     0. localStorage セーフラッパー（失敗時はメモリ上で動作継続）
+  ======================================================== */
+  var memoryStore = {};
+  var storage = {
+    get:function(key){
+      try{
+        var v = window.localStorage.getItem(key);
+        return v === null ? undefined : v;
+      }catch(e){
+        return memoryStore[key];
+      }
+    },
+    set:function(key,val){
+      try{
+        window.localStorage.setItem(key,val);
+      }catch(e){
+        memoryStore[key]=val;
+      }
+    }
+  };
+  function loadJSON(key, fallback){
+    var raw = storage.get(key);
+    if(!raw) return fallback;
+    try{ return JSON.parse(raw); }catch(e){ return fallback; }
+  }
+  function saveJSON(key, obj){
+    storage.set(key, JSON.stringify(obj));
+  }
+
+  /* ========================================================
+     0-b. PINコードによるロック画面
+  ======================================================== */
+  var APP_PIN = "1234";
+  var lockScreen = document.getElementById("lockScreen");
+  var appRoot = document.getElementById("appRoot");
+  var lockPinInput = document.getElementById("lockPinInput");
+  var lockError = document.getElementById("lockError");
+  var btnUnlock = document.getElementById("btnUnlock");
+
+  function tryUnlock(){
+    var val = lockPinInput.value.trim();
+    if(val === APP_PIN){
+      lockScreen.classList.add("hidden");
+      appRoot.classList.add("visible");
+      lockError.textContent = "";
+    }else{
+      lockError.textContent = "PINコードが違います。もう一度お試しください。";
+      lockError.classList.remove("shake");
+      void lockError.offsetWidth;
+      lockError.classList.add("shake");
+      lockPinInput.value = "";
+      lockPinInput.focus();
+    }
+  }
+  btnUnlock.addEventListener("click", tryUnlock);
+  lockPinInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); tryUnlock(); }
+  });
+  setTimeout(function(){ lockPinInput.focus(); }, 50);
+
+  /* ========================================================
+     1. データ定義：フェーズ／タスク
+  ======================================================== */
+  var PHASES = [
+    {
+      id:"prep", label:"準備期", icon:"🗓️",
+      tasks:[
+        {id:"prep-allergy", text:"参加者にアレルギー・食べられない物を確認する"},
+        {id:"prep-remind", text:"開催前日までに参加者へリマインドを送る"},
+        {id:"prep-collect", text:"集金方法（現金／電子マネー）を確定させる"},
+        {id:"prep-greeting", text:"乾杯・締めの挨拶を上司に依頼しておく"}
+      ]
+    },
+    {
+      id:"party1", label:"当日・1次会", icon:"🍻",
+      tasks:[
+        {id:"p1-early", text:"開始15分前に会場へ到着する"},
+        {id:"p1-seat", text:"上座・下座を確認し、席次を決めておく"},
+        {id:"p1-close", text:"中締めの時間をあらかじめセットしておく"},
+        {id:"p1-receipt", text:"会計時に領収書の宛名を伝える"}
+      ]
+    },
+    {
+      id:"party2", label:"当日・2次会", icon:"🎤",
+      tasks:[
+        {id:"p2-venue", text:"2次会会場の空き状況を確保・確認する"},
+        {id:"p2-taxi", text:"必要な人数分のタクシーを手配する"},
+        {id:"p2-lost", text:"忘れ物がないか"}
+      ]
+    },
+    {
+      id:"follow", label:"翌日・フォロー", icon:"🙏",
+      tasks:[
+        {id:"f-thanks", text:"参加者へお礼の連絡を送る"},
+        {id:"f-settle", text:"精算"},
+        {id:"f-card", text:"幹事実績カードに今回の記録を保存する"}
+      ]
+    }
+  ];
+
+  var checkedState = loadJSON("sakukan_checked", {});
+  var currentPhaseId = PHASES[0].id;
+
+  function saveChecked(){ saveJSON("sakukan_checked", checkedState); }
+
+  function countDone(phase){
+    var done = 0;
+    phase.tasks.forEach(function(t){ if(checkedState[t.id]) done++; });
+    return done;
+  }
+  function countAll(){
+    var done=0, total=0;
+    PHASES.forEach(function(ph){
+      total += ph.tasks.length;
+      done += countDone(ph);
+    });
+    return {done:done, total:total};
+  }
+
+  function renderHeaderProgress(){
+    var c = countAll();
+    var pct = c.total ? Math.round((c.done/c.total)*100) : 0;
+    document.getElementById("headerProgressFill").style.width = pct + "%";
+    document.getElementById("headerProgressText").textContent = pct + "%";
+  }
+
+  function renderPhaseTabs(){
+    var wrap = document.getElementById("phaseTabs");
+    wrap.innerHTML = "";
+    PHASES.forEach(function(ph){
+      var done = countDone(ph);
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "phase-tab";
+      btn.setAttribute("role","tab");
+      btn.setAttribute("aria-selected", ph.id === currentPhaseId ? "true" : "false");
+      btn.innerHTML = '<span class="phase-tab-icon" aria-hidden="true">'+ph.icon+'</span>'+
+                      '<span>'+ph.label+'</span>'+
+                      '<span class="phase-count">'+done+'/'+ph.tasks.length+'</span>';
+      btn.addEventListener("click", function(){
+        currentPhaseId = ph.id;
+        renderPhaseTabs();
+        renderTaskList();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function getCurrentPhase(){
+    var found = null;
+    PHASES.forEach(function(ph){ if(ph.id===currentPhaseId) found = ph; });
+    return found;
+  }
+
+  function checkIcon(){
+    return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5L10 17L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function renderTaskList(){
+    var phase = getCurrentPhase();
+    var list = document.getElementById("taskList");
+    list.innerHTML = "";
+    phase.tasks.forEach(function(task){
+      var isDone = !!checkedState[task.id];
+      var item = document.createElement("div");
+      item.className = "task-item" + (isDone ? " done" : "");
+      item.setAttribute("role","checkbox");
+      item.setAttribute("aria-checked", isDone ? "true" : "false");
+      item.tabIndex = 0;
+      item.innerHTML =
+        '<span class="task-check">'+checkIcon()+'</span>'+
+        '<span class="task-body"><span class="task-text">'+task.text+'</span></span>'+
+        (isDone ? '<span class="task-done-badge">完了</span>' : '');
+      function toggle(){
+        checkedState[task.id] = !checkedState[task.id];
+        saveChecked();
+        renderPhaseTabs();
+        renderTaskList();
+        renderHeaderProgress();
+      }
+      item.addEventListener("click", toggle);
+      item.addEventListener("keydown", function(e){
+        if(e.key==="Enter" || e.key===" "){ e.preventDefault(); toggle(); }
+      });
+      list.appendChild(item);
+    });
+
+    var done = countDone(phase);
+    var pct = phase.tasks.length ? Math.round((done/phase.tasks.length)*100) : 0;
+    document.getElementById("phaseProgressFill").style.width = pct + "%";
+    document.getElementById("phaseProgressNum").textContent = done + "/" + phase.tasks.length;
+  }
+
+  /* ========================================================
+     2. 参加者管理
+  ======================================================== */
+  var participants = loadJSON("sakukan_participants", []);
+  var editingParticipantId = null;
+  var partState = { attendance:"attend", allergyFlag:"none" };
+
+  function saveParticipants(){ saveJSON("sakukan_participants", participants); }
+  function uidP(){ return "p" + Date.now() + Math.floor(Math.random()*1000); }
+
+  function attendanceBadge(att){
+    if(att === "attend") return '<span class="badge badge-attend">✓ 出席</span>';
+    if(att === "absent") return '<span class="badge badge-absent">✕ 欠席</span>';
+    return '<span class="badge badge-pending">？ 保留</span>';
+  }
+
+  function renderParticipants(){
+    var wrap = document.getElementById("participantList");
+    wrap.innerHTML = "";
+    if(participants.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><span class="es-icon" aria-hidden="true">👥</span>右下の＋ボタンから、参加者を登録してみましょう。</div>';
+      return;
+    }
+    participants.forEach(function(p){
+      var card = document.createElement("div");
+      card.className = "record-card";
+      card.innerHTML =
+        '<div class="record-card-top">'+
+          '<div><div class="record-event">'+escapeHtml(p.name||"名前未設定")+'</div></div>'+
+          attendanceBadge(p.attendance)+
+        '</div>'+
+        (p.allergyFlag === "yes" ? '<div class="allergy-chip">⚠️ アレルギーあり</div>' : '')+
+        (p.allergyFlag === "yes" && p.allergyDetail ? '<div class="allergy-detail">'+escapeHtml(p.allergyDetail)+'</div>' : '')+
+        '<div class="record-actions">'+
+          '<button type="button" class="btn-secondary" data-edit="'+p.id+'">編集</button>'+
+          '<button type="button" class="btn-danger-outline" data-del="'+p.id+'">削除</button>'+
+        '</div>';
+      wrap.appendChild(card);
+    });
+
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-edit]"), function(btn){
+      btn.addEventListener("click", function(){ openParticipantModal(btn.getAttribute("data-edit")); });
+    });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-del]"), function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-del");
+        if(window.confirm("この参加者を削除しますか？")){
+          participants = participants.filter(function(p){ return p.id !== id; });
+          saveParticipants();
+          renderParticipants();
+        }
+      });
+    });
+  }
+
+  var participantModalBackdrop = document.getElementById("participantModalBackdrop");
+  var partAttendanceEl = document.getElementById("partAttendance");
+  var partAllergyFlagEl = document.getElementById("partAllergyFlag");
+
+  function bindPartSegment(el, stateKey){
+    el.addEventListener("click", function(e){
+      var btn = e.target.closest("button");
+      if(!btn) return;
+      partState[stateKey] = btn.getAttribute("data-val");
+      Array.prototype.forEach.call(el.querySelectorAll("button"), function(b){
+        b.setAttribute("aria-pressed", b===btn ? "true":"false");
+      });
+    });
+  }
+  bindPartSegment(partAttendanceEl, "attendance");
+  bindPartSegment(partAllergyFlagEl, "allergyFlag");
+
+  function setSegmentValue(el, stateKey, value){
+    partState[stateKey] = value;
+    Array.prototype.forEach.call(el.querySelectorAll("button"), function(b){
+      b.setAttribute("aria-pressed", b.getAttribute("data-val")===value ? "true":"false");
+    });
+  }
+
+  function openParticipantModal(id){
+    editingParticipantId = id || null;
+    document.getElementById("participantModalTitle").textContent = editingParticipantId ? "参加者を編集" : "参加者を追加";
+    if(editingParticipantId){
+      var p = participants.filter(function(x){ return x.id===editingParticipantId; })[0];
+      document.getElementById("partName").value = p.name || "";
+      document.getElementById("partAllergyDetail").value = p.allergyDetail || "";
+      setSegmentValue(partAttendanceEl, "attendance", p.attendance || "attend");
+      setSegmentValue(partAllergyFlagEl, "allergyFlag", p.allergyFlag || "none");
+    }else{
+      document.getElementById("partName").value = "";
+      document.getElementById("partAllergyDetail").value = "";
+      setSegmentValue(partAttendanceEl, "attendance", "attend");
+      setSegmentValue(partAllergyFlagEl, "allergyFlag", "none");
+    }
+    participantModalBackdrop.classList.add("open");
+  }
+  function closeParticipantModal(){ participantModalBackdrop.classList.remove("open"); }
+
+  document.getElementById("btnCancelParticipant").addEventListener("click", closeParticipantModal);
+  participantModalBackdrop.addEventListener("click", function(e){
+    if(e.target === participantModalBackdrop) closeParticipantModal();
+  });
+  document.getElementById("btnSaveParticipant").addEventListener("click", function(){
+    var data = {
+      name: document.getElementById("partName").value.trim(),
+      attendance: partState.attendance,
+      allergyFlag: partState.allergyFlag,
+      allergyDetail: document.getElementById("partAllergyDetail").value.trim()
+    };
+    if(editingParticipantId){
+      participants = participants.map(function(p){
+        return p.id === editingParticipantId ? Object.assign({}, p, data) : p;
+      });
+    }else{
+      data.id = uidP();
+      participants.push(data);
+    }
+    saveParticipants();
+    renderParticipants();
+    closeParticipantModal();
+    showToast(editingParticipantId ? "更新しました！" : "保存しました！");
+  });
+
+  /* ========================================================
+     3. 引き算割り勘電卓
+  ======================================================== */
+  var roundMode = 100;
+  var roundSegment = document.getElementById("roundSegment");
+  roundSegment.addEventListener("click", function(e){
+    var btn = e.target.closest("button");
+    if(!btn) return;
+    roundMode = parseInt(btn.getAttribute("data-round"),10);
+    Array.prototype.forEach.call(roundSegment.querySelectorAll("button"), function(b){
+      b.setAttribute("aria-pressed", b===btn ? "true":"false");
+    });
+    calcWarizan();
+  });
+
+  function roundUpTo(value, unit){
+    if(unit === 0) return Math.floor(value);
+    return Math.ceil(value/unit)*unit;
+  }
+
+  function formatYen(n){
+    var sign = n < 0 ? "-" : "";
+    var abs = Math.round(Math.abs(n));
+    return sign + "¥" + abs.toLocaleString("ja-JP");
+  }
+
+  function calcWarizan(){
+    var total = parseFloat(document.getElementById("inpTotal").value) || 0;
+    var discount = parseFloat(document.getElementById("inpDiscount").value) || 0;
+    var people = parseInt(document.getElementById("inpPeople").value,10) || 0;
+
+    var target = Math.max(total - discount, 0);
+    var perPersonEl = document.getElementById("perPersonValue");
+    var targetValueEl = document.getElementById("targetValue");
+    var diffValueEl = document.getElementById("diffValue");
+    var diffCard = document.getElementById("diffCard");
+    var noteEl = document.getElementById("calcNote");
+
+    targetValueEl.textContent = formatYen(target);
+
+    if(people <= 0){
+      perPersonEl.innerHTML = "¥0<span>／人</span>";
+      diffValueEl.textContent = "¥0";
+      diffCard.className = "result-sub-card diff-zero";
+      noteEl.textContent = "一般参加者の人数を入力してください。";
+      return;
+    }
+
+    var rawPerPerson = target / people;
+    var perPerson = roundUpTo(rawPerPerson, roundMode);
+    var collected = perPerson * people;
+    var diff = collected - target;
+
+    perPersonEl.innerHTML = formatYen(perPerson) + "<span>／人</span>";
+    if(diff > 0){
+      diffValueEl.textContent = formatYen(diff) + " あまり";
+      diffCard.className = "result-sub-card diff-plus";
+    }else{
+      diffValueEl.textContent = "¥0（ぴったり）";
+      diffCard.className = "result-sub-card diff-zero";
+    }
+    var roundLabel = roundMode===0 ? "端数切り捨て" : (roundMode.toLocaleString("ja-JP")+"円単位で切り上げ");
+    noteEl.textContent = "（総額 "+formatYen(total)+" − 差引額 "+formatYen(discount)+"）÷ "+people+"人 を"+roundLabel+"で算出しています。あまりはお店へのチップや次回の会費繰越にどうぞ。";
+  }
+  ["inpTotal","inpDiscount","inpPeople"].forEach(function(id){
+    document.getElementById(id).addEventListener("input", calcWarizan);
+  });
+
+  /* ========================================================
+     4. 気配り文面テンプレート
+  ======================================================== */
+  var tplState = { recipient:"boss", timing:"samenight", payment:"cash" };
+
+  function bindSegment(elId, stateKey){
+    var el = document.getElementById(elId);
+    el.addEventListener("click", function(e){
+      var btn = e.target.closest("button");
+      if(!btn) return;
+      tplState[stateKey] = btn.getAttribute("data-val");
+      Array.prototype.forEach.call(el.querySelectorAll("button"), function(b){
+        b.setAttribute("aria-pressed", b===btn ? "true":"false");
+      });
+      renderTemplate();
+    });
+  }
+  bindSegment("tplRecipient","recipient");
+  bindSegment("tplTiming","timing");
+  bindSegment("tplPayment","payment");
+
+  var MANNER_TIPS = {
+    boss_samenight: "上司への当日連絡は「取り急ぎ」の一言を添えると、丁寧かつ簡潔にまとまります。",
+    boss_nextmorning: "翌朝は「先日は」ではなく「昨晩は」を使うと、時間の近さが伝わり自然です。",
+    boss_later: "少し日が空いた場合は「先日は」でOK。開催当日から日数が近いときだけ「先日」を避けましょう。",
+    peer_samenight: "同僚・後輩向けでも、集金の話は「ご精算」と表記するときちんと見えます。",
+    peer_nextmorning: "翌朝の連絡は「昨日は」を使うと自然です。「先日」は少し他人行儀な印象になります。",
+    peer_later: "後日のお礼でも「昨日の今日」のような口語表現は避け、「先日は」「その節は」を使うと丁寧です。"
+  };
+
+  function buildGreeting(){
+    var recipient = tplState.recipient;
+    var timing = tplState.timing;
+    if(recipient === "boss"){
+      if(timing === "samenight") return "お疲れ様です。取り急ぎ、本日はありがとうございました。";
+      if(timing === "nextmorning") return "おはようございます。昨晩はありがとうございました。";
+      return "お世話になっております。先日は貴重なお時間をいただき、ありがとうございました。";
+    }else{
+      if(timing === "samenight") return "お疲れ様でした！今日はありがとうございました。";
+      if(timing === "nextmorning") return "おはようございます！昨日はありがとうございました。";
+      return "お疲れ様です。先日はありがとうございました。";
+    }
+  }
+
+  function buildBody(){
+    var recipient = tplState.recipient;
+    if(recipient === "boss"){
+      return "おかげさまで皆さん楽しい時間を過ごせたようで、幹事としてもほっとしております。";
+    }else{
+      return "みんなで楽しい時間を過ごせて良かったです！";
+    }
+  }
+
+  function buildPaymentLine(){
+    var recipient = tplState.recipient;
+    var payment = tplState.payment;
+    var honorific = recipient === "boss" ? "ご" : "";
+    if(payment === "cash"){
+      return "お手数ですが、会費のご精算につきまして、"+(recipient==="boss" ? "近日中に" : "近いうちに")+"現金にて集めさせていただきますので、よろしくお願いいたします。";
+    }else{
+      return "会費の"+honorific+"精算につきまして、後ほどPayPay等のアカウント宛にご請求をお送りしますので、ご確認のほどよろしくお願いいたします。";
+    }
+  }
+
+  function buildClosing(){
+    var recipient = tplState.recipient;
+    if(recipient === "boss"){
+      return "またご都合が合う際は、ぜひ次回もよろしくお願いいたします。";
+    }else{
+      return "ぜひ次回も参加してください！";
+    }
+  }
+
+  function renderTemplate(){
+    var text = buildGreeting() + "\n\n" + buildBody() + "\n\n" + buildPaymentLine() + "\n\n" + buildClosing();
+    document.getElementById("templatePreview").textContent = text;
+    var tipKey = tplState.recipient + "_" + tplState.timing;
+    document.getElementById("mannerTipText").textContent = MANNER_TIPS[tipKey] || "";
+  }
+
+  document.getElementById("btnCopyTemplate").addEventListener("click", function(){
+    var text = document.getElementById("templatePreview").textContent;
+    copyToClipboard(text);
+    showToast("コピーしました！");
+  });
+
+  function copyToClipboard(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).catch(function(){ fallbackCopy(text); });
+    }else{
+      fallbackCopy(text);
+    }
+  }
+  function fallbackCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  var toastTimer = null;
+  function showToast(msg){
+    var toast = document.getElementById("toast");
+    document.getElementById("toastText").textContent = msg;
+    toast.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove("show"); }, 2200);
+  }
+
+  /* ========================================================
+     5. 幹事実績カード
+  ======================================================== */
+  var records = loadJSON("sakukan_records", []);
+  var editingId = null;
+  var selectedStars = 0;
+
+  function saveRecords(){ saveJSON("sakukan_records", records); }
+  function uid(){ return "r" + Date.now() + Math.floor(Math.random()*1000); }
+
+  function formatDateJa(dateStr){
+    if(!dateStr) return "日付未設定";
+    var parts = dateStr.split("-");
+    if(parts.length!==3) return dateStr;
+    return parts[0]+"年"+parseInt(parts[1],10)+"月"+parseInt(parts[2],10)+"日";
+  }
+
+  function renderRecords(){
+    var wrap = document.getElementById("recordList");
+    wrap.innerHTML = "";
+    if(records.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><span class="es-icon" aria-hidden="true">🏮</span>右下の＋ボタンから、今回の飲み会を記録してみましょう。</div>';
+      return;
+    }
+    var sorted = records.slice().sort(function(a,b){
+      return (b.date||"").localeCompare(a.date||"");
+    });
+    sorted.forEach(function(rec){
+      var card = document.createElement("div");
+      card.className = "record-card";
+      var stars = "";
+      for(var i=1;i<=5;i++){ stars += (i<=rec.rating ? "★" : "☆"); }
+      card.innerHTML =
+        '<div class="record-card-top">'+
+          '<div><div class="record-event">'+escapeHtml(rec.eventName||"名称未設定の飲み会")+'</div>'+
+          '<div class="record-date">'+formatDateJa(rec.date)+'</div></div>'+
+        '</div>'+
+        (rec.shopName ? '<div class="record-shop">'+escapeHtml(rec.shopName)+'</div>' : '')+
+        '<div class="record-rating" aria-label="満足度 '+rec.rating+'/5">'+
+          '<span class="star" aria-hidden="true">'+stars+'</span>'+
+        '</div>'+
+        (rec.memo ? '<div class="record-memo">'+escapeHtml(rec.memo)+'</div>' : '')+
+        '<div class="record-actions">'+
+          '<button type="button" class="btn-secondary" data-edit="'+rec.id+'">編集</button>'+
+          '<button type="button" class="btn-danger-outline" data-del="'+rec.id+'">削除</button>'+
+        '</div>';
+      wrap.appendChild(card);
+    });
+
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-edit]"), function(btn){
+      btn.addEventListener("click", function(){ openRecordModal(btn.getAttribute("data-edit")); });
+    });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-del]"), function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-del");
+        if(window.confirm("この実績カードを削除しますか？")){
+          records = records.filter(function(r){ return r.id !== id; });
+          saveRecords();
+          renderRecords();
+        }
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(ch){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[ch];
+    });
+  }
+
+  var modalBackdrop = document.getElementById("recordModalBackdrop");
+  var recStars = document.getElementById("recStars");
+
+  function renderStars(){
+    Array.prototype.forEach.call(recStars.querySelectorAll("button"), function(b){
+      var v = parseInt(b.getAttribute("data-star"),10);
+      b.textContent = v <= selectedStars ? "★" : "☆";
+    });
+  }
+  recStars.addEventListener("click", function(e){
+    var btn = e.target.closest("button");
+    if(!btn) return;
+    selectedStars = parseInt(btn.getAttribute("data-star"),10);
+    renderStars();
+  });
+
+  function openRecordModal(id){
+    editingId = id || null;
+    document.getElementById("recordModalTitle").textContent = editingId ? "実績カードを編集" : "実績カードを追加";
+    if(editingId){
+      var rec = records.filter(function(r){ return r.id===editingId; })[0];
+      document.getElementById("recDate").value = rec.date || "";
+      document.getElementById("recEvent").value = rec.eventName || "";
+      document.getElementById("recShop").value = rec.shopName || "";
+      document.getElementById("recMemo").value = rec.memo || "";
+      selectedStars = rec.rating || 0;
+    }else{
+      var todayStr = new Date().toISOString().slice(0,10);
+      document.getElementById("recDate").value = todayStr;
+      document.getElementById("recEvent").value = "";
+      document.getElementById("recShop").value = "";
+      document.getElementById("recMemo").value = "";
+      selectedStars = 0;
+    }
+    renderStars();
+    modalBackdrop.classList.add("open");
+  }
+  function closeRecordModal(){
+    modalBackdrop.classList.remove("open");
+  }
+
+  document.getElementById("btnCancelRecord").addEventListener("click", closeRecordModal);
+  modalBackdrop.addEventListener("click", function(e){
+    if(e.target === modalBackdrop) closeRecordModal();
+  });
+
+  document.getElementById("btnSaveRecord").addEventListener("click", function(){
+    var data = {
+      date: document.getElementById("recDate").value,
+      eventName: document.getElementById("recEvent").value.trim(),
+      shopName: document.getElementById("recShop").value.trim(),
+      memo: document.getElementById("recMemo").value.trim(),
+      rating: selectedStars
+    };
+    if(editingId){
+      records = records.map(function(r){
+        return r.id === editingId ? Object.assign({}, r, data) : r;
+      });
+    }else{
+      data.id = uid();
+      records.push(data);
+    }
+    saveRecords();
+    renderRecords();
+    closeRecordModal();
+    showToast(editingId ? "更新しました！" : "保存しました！");
+  });
+
+  /* ========================================================
+     6. 画面切り替え（ボトムナビ）＋FAB
+  ======================================================== */
+  var currentView = "checklist";
+  var navBtns = Array.prototype.slice.call(document.querySelectorAll(".nav-btn"));
+  var views = {
+    checklist: document.getElementById("view-checklist"),
+    participants: document.getElementById("view-participants"),
+    warizan: document.getElementById("view-warizan"),
+    template: document.getElementById("view-template"),
+    records: document.getElementById("view-records")
+  };
+  var fabAdd = document.getElementById("fabAdd");
+
+  function switchView(target){
+    currentView = target;
+    Object.keys(views).forEach(function(key){
+      views[key].classList.toggle("active", key===target);
+    });
+    navBtns.forEach(function(btn){
+      btn.setAttribute("aria-current", btn.getAttribute("data-target")===target ? "true":"false");
+    });
+    var showFab = (target==="records" || target==="participants");
+    fabAdd.classList.toggle("show", showFab);
+    fabAdd.setAttribute("aria-label", target==="participants" ? "参加者を追加" : "実績カードを追加");
+    document.getElementById("headerProgressWrap").style.display = target==="checklist" ? "block":"none";
+  }
+  navBtns.forEach(function(btn){
+    btn.addEventListener("click", function(){ switchView(btn.getAttribute("data-target")); });
+  });
+
+  fabAdd.addEventListener("click", function(){
+    if(currentView === "participants"){
+      openParticipantModal(null);
+    }else if(currentView === "records"){
+      openRecordModal(null);
+    }
+  });
+
+  /* ========================================================
+     7. 初期化
+  ======================================================== */
+  renderPhaseTabs();
+  renderTaskList();
+  renderHeaderProgress();
+  renderParticipants();
+  calcWarizan();
+  renderTemplate();
+  renderRecords();
+  switchView("checklist");
+
+})();
+</script>
+    <!-- ▼ ここに置く！ ▼ -->
+    <footer style="text-align: center; font-size: 0.75rem; color: #888; margin-top: 3rem; padding: 1rem 0.5rem; line-height: 1.5;">
+      <p>【ご利用について】本アプリは、使用される方の毎日を楽しく、快適にする目的で開発されたWEBアプリケーションです。動作確認には万全を期しておりますが、端末環境やブラウザの仕様変更等に伴うデータ損失やトラブルについて開発者は一切の責任を負いかねます。</p>
+      <p>ご意見・不具合のご報告は X（<a href="https://x.com/lblt_labo" target="_blank" rel="noopener" style="color: #666; text-decoration: underline;">@lblt_labo</a>）までお願いいたします。</p>
+    </footer>
+</body>
+</html>
